@@ -15,9 +15,9 @@ func main() {
 	}
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/app/", http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(filePathRoot)))))
-	serveMux.HandleFunc("GET /metrics", cfg.metricsHandler)
-	serveMux.HandleFunc("GET /healthz", handlerReady)
-	serveMux.HandleFunc("POST /reset", cfg.resetHandler)
+	serveMux.HandleFunc("GET /api/metrics", cfg.metricsHandler)
+	serveMux.HandleFunc("GET /api/healthz", handlerReady)
+	serveMux.HandleFunc("POST /api/reset", cfg.resetHandler)
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: serveMux,
