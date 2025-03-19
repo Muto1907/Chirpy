@@ -12,7 +12,7 @@ func validateChirp(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 	type returnValues struct {
-		Valid bool `json:"valid"`
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -26,7 +26,7 @@ func validateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respBody := returnValues{
-		Valid: true,
+		CleanedBody: replaceBadWords(param.Body),
 	}
 	respondWithJSON(w, 200, respBody)
 }
