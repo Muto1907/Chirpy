@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 )
 
 func validateChirp(w http.ResponseWriter, r *http.Request) {
@@ -27,4 +29,15 @@ func validateChirp(w http.ResponseWriter, r *http.Request) {
 		Valid: true,
 	}
 	respondWithJSON(w, 200, respBody)
+}
+
+func replaceBadWords(in string) string {
+	badWords := []string{"kerfuffle", "sharbert", "fornax"}
+	words := strings.Split(in, " ")
+	for i, word := range words {
+		if slices.Contains(badWords, strings.ToLower(word)) {
+			words[i] = "****"
+		}
+	}
+	return strings.Join(words, " ")
 }
