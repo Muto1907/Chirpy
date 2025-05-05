@@ -40,8 +40,10 @@ func main() {
 	serveMux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	serveMux.HandleFunc("POST /api/users", cfg.createUser)
 	serveMux.HandleFunc("POST /api/chirps", cfg.createChirp)
+	serveMux.HandleFunc("POST /api/login", cfg.loginHandler)
 	serveMux.HandleFunc("GET /api/chirps", cfg.getChirps)
 	serveMux.HandleFunc("GET /api/chirps/{chirpID}", cfg.getChirp)
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: serveMux,
