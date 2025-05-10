@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Muto1907/Chirpy/internal/auth"
 	"github.com/Muto1907/Chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -21,8 +22,7 @@ type Chirp struct {
 
 func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body   string    `json:"body"`
-		UserId uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -32,6 +32,15 @@ func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Error decoding request: ", err)
 		return
 	}
+	bearer, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get Authorization Header", err)
+	}
+	id, err := auth.ValidateJWT(bearer, cfg.secretKey)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Authorization error, user not logged in", err)
+	}
+
 	if len(params.Body) > 140 {
 		respondWithError(w, 400, "Chirp is too long", nil)
 		return
@@ -39,7 +48,7 @@ func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 	cleanedBody := replaceBadWords(params.Body)
 	createChirpParams := database.CreateChirpParams{
 		Body:   cleanedBody,
-		UserID: params.UserId,
+		UserID: id, //params.UserId,
 	}
 	chirpDb, err := cfg.queries.CreateChirp(r.Context(), createChirpParams)
 	if err != nil {

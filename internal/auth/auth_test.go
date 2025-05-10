@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -52,5 +53,17 @@ func TestTokenValidation(t *testing.T) {
 	_, err = ValidateJWT(ss, "secret123")
 	if err == nil {
 		t.Fatalf("Validation succeeded eventhough the token shouldve expired: %s", err)
+	}
+}
+
+func TestGetBearerToken(t *testing.T) {
+	head := http.Header{}
+	head.Add("Authorization", "Bearer This_is_an_important_Token")
+	res, err := GetBearerToken(head)
+	if err != nil {
+		t.Fatalf("Error with header: %s", err)
+	}
+	if res != "This_is_an_important_Token" {
+		t.Fatalf("Wrong Token, expected: This_is_an_important_Token. got = %s", res)
 	}
 }

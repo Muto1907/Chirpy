@@ -20,6 +20,10 @@ func main() {
 		log.Printf("Error Loading env variables: %s", err)
 	}
 	dbURL := os.Getenv("DB_URL")
+	secretKey := os.Getenv("SECRET_KEY")
+	if secretKey == "" {
+		log.Fatalf("No Secret Key found.")
+	}
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Printf("Error opening database: %s", err)
@@ -32,6 +36,7 @@ func main() {
 		atomic.Int32{},
 		dbQueries,
 		platform,
+		secretKey,
 	}
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/app/", http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(filePathRoot)))))
@@ -57,6 +62,7 @@ type apiConfig struct {
 	fileServerHits atomic.Int32
 	queries        *database.Queries
 	platform       string
+	secretKey      string
 }
 
 type User struct {
