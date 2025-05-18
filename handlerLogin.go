@@ -7,17 +7,18 @@ import (
 	"time"
 
 	"github.com/Muto1907/Chirpy/internal/auth"
+	"github.com/Muto1907/Chirpy/internal/database"
 )
 
 func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Password         string `json:"password"`
-		Email            string `json:"email"`
-		ExpiresInSeconds int64  `json:"expires_in_seconds"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 	type response struct {
 		User
-		Token string `json:"token"`
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -37,15 +38,24 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "incorrect email or password", err)
 		return
 	}
-	var dur time.Duration
-	if params.ExpiresInSeconds == 0 || params.ExpiresInSeconds > 3600 {
-		dur = time.Hour
-	} else {
-		dur = time.Second * time.Duration(params.ExpiresInSeconds)
-	}
+	dur := time.Hour
+
 	token, err := auth.MakeJWT(user.ID, cfg.secretKey, dur)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldnt generate JWT", err)
+		return
+	}
+	rf_token, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't generate Refresh Token string", err)
+	}
+	rft_params := database.CreateRefreshTokenParams{
+		Token:  rf_token,
+		UserID: user.ID,
+	}
+	rft, err := cfg.queries.CreateRefreshToken(context.Background(), rft_params)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't insert Refresh Token into database", err)
 		return
 	}
 	responseUser := response{User{
@@ -53,7 +63,9 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
-	}, token,
+	},
+		token,
+		rft.Token,
 	}
 	respondWithJSON(w, http.StatusOK, responseUser)
 }
