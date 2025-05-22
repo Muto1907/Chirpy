@@ -82,3 +82,28 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	)
 	return i, err
 }
+
+const setUserPassword = `-- name: SetUserPassword :one
+UPDATE users SET hashed_password = $1, email = $2
+WHERE id = $3 
+RETURNING id, created_at, updated_at, email, hashed_password
+`
+
+type SetUserPasswordParams struct {
+	HashedPassword string
+	Email          string
+	ID             uuid.UUID
+}
+
+func (q *Queries) SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, setUserPassword, arg.HashedPassword, arg.Email, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+	)
+	return i, err
+}
