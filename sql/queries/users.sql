@@ -22,3 +22,6 @@ SELECT * FROM users WHERE id = $1;
 UPDATE users SET hashed_password = $1, email = $2
 WHERE id = $3 
 RETURNING *;
+
+-- name: SetChirpyRed :exec
+UPDATE users SET is_chirpy_red = true WHERE id = $1;

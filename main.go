@@ -51,6 +51,8 @@ func main() {
 	serveMux.HandleFunc("POST /api/refresh", cfg.refreshToken)
 	serveMux.HandleFunc("POST /api/revoke", cfg.revokeToken)
 	serveMux.HandleFunc("PUT /api/users", cfg.updatePasswordAndEmail)
+	serveMux.HandleFunc("DELETE /api/chirps/{chirpID}", cfg.deleteChirp)
+	serveMux.HandleFunc("POST /api/polka/webhooks", cfg.updateChirpyRed)
 
 	server := &http.Server{
 		Addr:    ":" + port,
@@ -69,8 +71,9 @@ type apiConfig struct {
 }
 
 type User struct {
-	Id        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
+	Id          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
 }
