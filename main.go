@@ -24,6 +24,7 @@ func main() {
 	if secretKey == "" {
 		log.Fatalf("No Secret Key found.")
 	}
+	polkaKey := os.Getenv("POLKA_KEY")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Printf("Error opening database: %s", err)
@@ -37,6 +38,7 @@ func main() {
 		dbQueries,
 		platform,
 		secretKey,
+		polkaKey,
 	}
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/app/", http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(filePathRoot)))))
@@ -68,6 +70,7 @@ type apiConfig struct {
 	queries        *database.Queries
 	platform       string
 	secretKey      string
+	polkakey       string
 }
 
 type User struct {

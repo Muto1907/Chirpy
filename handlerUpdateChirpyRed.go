@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Muto1907/Chirpy/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -16,9 +17,18 @@ func (cfg *apiConfig) updateChirpyRed(w http.ResponseWriter, r *http.Request) {
 		} `json:"data"`
 	}
 	type response struct{}
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		respondWithError(w, 401, "API Key is missing in Request Header", err)
+		return
+	}
+	if apiKey != cfg.polkakey {
+		respondWithError(w, 401, "Wrong API Key", err)
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	params := &requestParameters{}
-	err := decoder.Decode(params)
+	err = decoder.Decode(params)
 	if err != nil {
 		respondWithError(w, 500, "Couldn't decode webhook", err)
 		return
